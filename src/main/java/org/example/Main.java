@@ -1,6 +1,7 @@
 package org.example;
 
 import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.cj.x.protobuf.MysqlxCrud;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -26,6 +27,7 @@ public class Main {
         // String password = "12345";
         // Connection connection = EstablishContact(url, username, password);
 
+        // cl. jankowski is here to serve
         while (true) {
             MainMenu();
         }
@@ -53,13 +55,15 @@ public class Main {
                     GetDBList();
                     break;
                 case 2:
-                    System.out.println("Not implemented");
+                    selectionValid = true;
+                    CreateDB();
                     break;
                 case 3:
                     System.out.println("Not implemented");
                     break;
                 case 4:
-                    System.out.println("Not implemented");
+                    selectionValid = true;
+                    DeleteDB();
                     break;
                 case 5:
                     System.exit(0);
@@ -72,13 +76,56 @@ public class Main {
         return false;
     }
 
-    public static void DeleteDB() {
+    public static void CreateDB() throws SQLException {
+        Scanner input = new Scanner(System.in);
+        System.out.println("Please enter the DB name to be created.");
+        String dbname = input.nextLine();
+        boolean succeeded = true;
 
+        Statement stmt = GetStatement(null);
+
+        try {
+            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbname);
+        } catch (Exception e) {
+            System.out.println("FAILURE. You probably don't have the admin privileges required to do that, or it already exists.");
+            succeeded = false;
+        }
+
+        if (succeeded) {
+            System.out.println(ANSI_BLUE + "GREAT SUCCESS" + ANSI_RESET);
+        }
     }
 
-    public static void CreateDB() {
+    public static void DeleteDB() throws SQLException {
+        Scanner input = new Scanner(System.in);
+        System.out.println("Please enter the DB name to be deleted.");
+        String dbname = input.nextLine();
+        boolean succeeded = true;
 
+        Statement stmt = GetStatement(null);
+
+        // needs a check to see whether it exists (or see how I can get the SQL response that says that)
+
+        try {
+            stmt.executeUpdate("DROP DATABASE IF EXISTS " + dbname);
+        } catch (Exception e) {
+            System.out.println("FAILURE. You probably don't have the admin privileges required to do that, or it doesn't exist.");
+            succeeded = false;
+        }
+
+        if (succeeded) {
+            System.out.println(ANSI_BLUE + "GREAT SUCCESS" + ANSI_RESET);
+        }
     }
+
+    public static void RenameDB() throws SQLException {
+        System.out.println("Not in MySQL I'm afraid :)");
+        System.out.println("A solution is coming");
+        // apparently impossible.
+        // create a new DB with the same exact charset/collation, move all tables, and then delete the old?
+        // will this nuke any other settings?
+    }
+
 
     public static String GetDBList() throws SQLException {
         // Zeigt alle Datenbanken, und dann nach Auswahl zeigt ihre Tabellen
@@ -112,13 +159,12 @@ public class Main {
                 ShowTables(dbname);
                 break;
             case 2:
-                System.out.println("Not implemented");
+                RenameDB();
                 break;
             case 3:
-                System.out.println("Not implemented");
+                DeleteDB();
                 break;
             case 4:
-                System.out.println("Not implemented");
                 break;
             default:
                 System.out.println("Make a valid selection please");
@@ -162,7 +208,7 @@ public class Main {
                 System.out.println("Table " + (i + 1) + ": " + results.getObject(1));
                 i++;
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println("No tables to be found.");
         }
 
@@ -227,7 +273,7 @@ public class Main {
         for (int i = 0; i < rows; i++) {
             results.next();
             for (int j = 1; j <= columns; j++) {
-                System.out.printf(format, results.getObject(j) );
+                System.out.printf(format, results.getObject(j));
             }
             System.out.println("");
         }
